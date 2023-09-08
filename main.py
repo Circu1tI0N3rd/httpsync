@@ -120,8 +120,12 @@ def main():
     if currIndex is None:
         newFiles = newIndex
     else:
-        newFiles = diffIndices_Threaded(currIndex, newIndex, 64)
-        #oldFiles = diffIndices_Threaded(newIndex, currIndex, 64)
+        newFiles = diffIndices_Threaded(currIndex, newIndex, maxThreads = 64)
+        oldFiles = diffIndices_Threaded(newIndex, currIndex, maxThreads = 64)
+        # - categorise files update/add/delete
+        addedFiles   = diffIndices_Threaded(oldFiles, newFiles, True, 64)
+        deletedFiles = diffIndices_Threaded(newFiles, oldFiles, True, 64)
+        updatedFiles = diffIndices_Threaded(addedFiles, newFiles, True, 64)
     # save new index
     saveIndex(newIndex, currIndexPath)
     # fetch new files
