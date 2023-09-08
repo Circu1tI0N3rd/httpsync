@@ -9,17 +9,25 @@ import subprocess
 import multiprocessing as mp
 from pathtools import changedir, fileCleanup
 
-def prepareDiffStructure(filesList):
+def prepareDiffStructure(filesList, urlOnly = False):
     filesStrList = []
     for file in filesList:
-        filesStrList.append(json.dumps(file, sort_keys=True))
+        strip = None
+        if urlOnly:
+            strip = { 'url' : file['url'] }
+        else:
+            strip = file
+        filesStrList.append(json.dumps(strip, sort_keys=True))
     filesStrList.sort()
     return filesStrList
 
-def revertDiffStructure(filesStrList):
+def revertDiffStructure(filesStrList, urlOnly = False):
     filesList = []
     for file in filesStrList:
-        filesList.append(json.loads(file))
+        reverted = json.loads(file)
+        if urlOnly:
+            reverted['file'] = '-'
+        filesList.append(reverted)
     return filesList
 
 def generateFileToDiff(filesList, path):
@@ -110,13 +118,13 @@ def filesTree(tree, path = []):
             lst += filesTree(tree[key], path + [key])
     return lst
 
-def diffIndexBuiltin_ThreadSafe(diffOut, indexA, indexB, path):
+def diffIndexBuiltin_ThreadSafe(diffOut, indexA, indexB, path, urlOnly = False):
     listA = transverseDict(indexA, path)
     listB = transverseDict(indexB, path)
     if type(listA) is list and type(listB) is list:
-        filesA = prepareDiffStructure(listA)
-        filesB = prepareDiffStructure(listB)
-        diffFiles = revertDiffStructure(set(filesB) - set(filesA))
+        filesA = prepareDiffStructure(listA, urlOnly)
+        filesB = prepareDiffStructure(listB, urlOnly)
+        diffFiles = revertDiffStructure(set(filesB) - set(filesA), urlOnly)
         if len(diffFiles) > 0:
             diffTree = {}
             subtree = diffTree
@@ -129,7 +137,7 @@ def diffIndexBuiltin_ThreadSafe(diffOut, indexA, indexB, path):
             diffOut.put(diffTree, block = True)
     sys.exit(0)
 
-def diffIndices_Threaded(indexA, indexB, maxThreads = 64):
+def diffIndices_Threaded(indexA, indexB, urlOnly = False, maxThreads = 64):
     diffIndex = {}
     diffOut = mp.Queue()
     processes = []
@@ -137,7 +145,7 @@ def diffIndices_Threaded(indexA, indexB, maxThreads = 64):
     for path in filesTree(indexB):
         processes.append(mp.Process(
                 target = diffIndexBuiltin_ThreadSafe,
-                args = (diffOut, indexA, indexB, path)
+                args = (diffOut, indexA, indexB, path, urlOnly)
             ))
     # iterate threads
     while len(processes) > 0:
@@ -159,6 +167,6 @@ def diffIndices_Threaded(indexA, indexB, maxThreads = 64):
                     processes[threads].start()
                     threads += 1
                 else:
-                    processes.pop(threads)
+                    del processes.pop(threads)
     # return
     return diffIndex
