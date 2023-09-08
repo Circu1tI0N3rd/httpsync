@@ -7,12 +7,12 @@ import os
 import json
 from pathlib import Path
 import aria2p
-from pathtools import saveIndex
+from pathtools import saveIndex, fileCleanup
 from defaults import def_general, def_aria2
 from argparser import ConsoleArguments
 from loadconfig import generalOptions, aria2Options
 from analyse import indexURL_Threaded
-from difftree import diffIndices_Threaded
+from difftree import diffIndices_Threaded, transverseDict, filesTree
 from fetch import indexDownload
 
 def updateOptions(generalOpts, aria2Opts, inArgs):
@@ -58,6 +58,13 @@ def permissionCheck(path):
     except:
         print('ERROR: Folder access failed.\n')
         sys.exit(1)
+
+def listStat(index):
+    count = 0
+    filesPath = filesTree(index)
+    for path in filesPath:
+        count += len(transverseDict(index, path))
+    return count
 
 def main():
     # get args
@@ -109,7 +116,10 @@ def main():
     currIndexPath = gOpts.cache / str(gOpts.source + '_' + gOpts.distro + '_index.json')
     currIndex = None
     newFiles = {}
-    #oldFiles = {}
+    oldFiles = None
+    addedFiles = None
+    deletedFiles = None
+    updatedFiles = None
     if currIndexPath.is_file():
         try:
             with currIndexPath.open('r') as f:
@@ -119,6 +129,7 @@ def main():
     # - build diff index (add & remove)
     if currIndex is None:
         newFiles = newIndex
+        addedFiles = newIndex
     else:
         newFiles = diffIndices_Threaded(currIndex, newIndex, maxThreads = 64)
         oldFiles = diffIndices_Threaded(newIndex, currIndex, maxThreads = 64)
@@ -128,8 +139,58 @@ def main():
         updatedFiles = diffIndices_Threaded(addedFiles, newFiles, True, 64)
     # save new index
     saveIndex(newIndex, currIndexPath)
+    # statistics
+    print('New files: %d' % listStat(newFiles))
+    if oldFiles is not None:
+        print('Old files: %d' % listStat(oldFiles))
+    print('Files to be added: %d' % listStat(addedFiles))
+    if deletedFiles is not None:
+        print('Files to be deleted: %d' % listStat(deletedFiles))
+    if updatedFiles is not None:
+        print('Files to be updated: %d' % listStat(updatedFiles))
     # fetch new files
-    indexDownload(aria2, newFiles, gOpts.destination / gOpts.distro)
+    # - fetch pool
+    if 'pool' in newFiles:
+        print('Downloading "pool"')
+        poolFetches = indexDownload(aria2, newFiles['pool'], gOpts.destination / gOpts.distro)
+        while len(poolFetches) > 0:
+            pos = 0
+            while pos < len(poolFetches):
+                poolFetches[pos].update()
+                if poolFetches[pos].is_complete:
+                    poolFetches[pos].remove(False, False)
+                    poolFetches.pop(pos)
+                else:
+                    pos += 1
+        print('Downloaded "pool"')
+    # - fetch dists
+    if 'dists' in newFiles:
+        print('Downloading "dists"')
+        distsFetches = indexDownload(aria2, newFiles['dists'], gOpts.destination / gOpts.distro)
+        while len(distsFetches) > 0:
+            pos = 0
+            while pos < len(distsFetches):
+                distsFetches[pos].update()
+                if distsFetches[pos].is_complete:
+                    distsFetches[pos].remove(False, False)
+                    distsFetches.pop(pos)
+                else:
+                    pos += 1
+        print('Downloaded "dists"')
+    # remove old files
+    if deletedFiles is not None:
+        delPaths = filesTree(deletedFiles)
+        delList = []
+        for subdirs in delPaths:
+            path = Path(gOpts.destination) / gOpts.distro
+            for subdir in subdirs:
+                if subdir != 'files':
+                    path /= subdir
+            for file in transverseDict(deletedFiles, subdirs):
+                url = str(file['url']).rsplit('/', maxsplit=1)
+                delList.append(path / url[1])
+        for delFile in delList:
+            fileCleanup(delFile)
     # return
     print('Mirror complete!\n')
     sys.exit(0)
