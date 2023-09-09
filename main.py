@@ -16,7 +16,7 @@ from argparser import ConsoleArguments
 from loadconfig import generalOptions, aria2Options
 from analyse import indexURL_Threaded
 from difftree import diffIndices_Threaded, transverseDict, filesTree
-from fetch import indexDownload
+from fetch import indexDownload, waitForAllFetches
 
 def updateOptions(generalOpts, aria2Opts, inArgs):
     if inArgs.source != def_general.source:
@@ -70,14 +70,6 @@ def listStat(index):
     for path in filesPath:
         count += len(transverseDict(index, path))
     return count
-
-def searchURL(index, filename):
-    for path in filesTree(index):
-        for file in transverseDict(index, path):
-            pos = file['url'].find(filename)
-            if pos > 0 and pos < len(file['url']):
-                return file['url']
-    return None
 
 def main():
     # system check
@@ -193,42 +185,14 @@ def main():
     # - fetch pool
     if 'pool' in newFiles:
         print('Downloading "pool"')
-        indexDownload(aria2, newFiles['pool'], gOpts.destination / gOpts.distro / 'pool')
-        fetches = aria2.get_downloads()
-        while len(fetches) > 0:
-            fails = []
-            for fetch in fetches:
-                try:
-                    fetch.update()
-                    if fetch.has_failed:
-                        print('Will retry: %s' % fetch.name)
-                        fails.append(fetch)
-                except:
-                    pass
-            if len(fails) > 0:
-                aria2.retry_downloads(fails, clean=True)
-            aria2.purge()
-            fetches = aria2.get_downloads()
+        print('Added %d files to downloads' % len(indexDownload(aria2, newFiles['pool'], gOpts.destination / gOpts.distro / 'pool')))
+        waitForAllFetches(aria2)
         print('Downloaded "pool"')
     # - fetch dists
     if 'dists' in newFiles:
         print('Downloading "dists"')
-        indexDownload(aria2, newFiles['dists'], gOpts.destination / gOpts.distro / 'dists')
-        fetches = aria2.get_downloads()
-        while len(fetches) > 0:
-            fails = []
-            for fetch in fetches:
-                try:
-                    fetch.update()
-                    if fetch.has_failed:
-                        print('Will retry: %s' % fetch.name)
-                        fails.append(fetch)
-                except:
-                    pass
-            if len(fails) > 0:
-                aria2.retry_downloads(fails, clean=True)
-            aria2.purge()
-            fetches = aria2.get_downloads()
+        print('Added %d files to downloads' % len(indexDownload(aria2, newFiles['dists'], gOpts.destination / gOpts.distro / 'dists')))
+        waitForAllFetches(aria2)
         print('Downloaded "dists"')
     # remove old files
     if deletedFiles is not None:
