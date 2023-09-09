@@ -130,15 +130,19 @@ def main():
         print('ERROR: aria2 RPC is not running or inaccessible.\n')
         sys.exit(1)
     # build index
-    newIndex = indexURL_Threaded(gOpts.source, gOpts.whitelist, gOpts.blacklist, 16)
+    url = gOpts.source
+    if not url.endswith('/'):
+        url += '/'
+    url += gOpts.distro
+    newIndex = indexURL_Threaded(url, gOpts.whitelist, gOpts.blacklist, 16)
     # check existing index
     srcname = str(gOpts.source)
     if srcname.find('https') == 0:
-        srcname.removeprefix('https://')
+        srcname = srcname.removeprefix('https://')
     else:
-        srcname.removeprefix('http://')
+        srcname = srcname.removeprefix('http://')
     if srcname.endswith('/'):
-        srcname.removesuffix('/')
+        srcname = srcname.removesuffix('/')
     if srcname.find('/') >= 0:
         srcsplit = srcname.split('/')
         srcname = '_'.join(srcsplit)
