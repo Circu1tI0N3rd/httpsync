@@ -136,6 +136,7 @@ class generalOptions(Options):
         b = self.blacklist
 
 class aria2Options(Options):
+    detach = OptionItem(var_type=bool, default=def_aria2.detach)
     listen_all = OptionItem(var_type=bool, default=def_aria2.listen_all)
     port = OptionItem(var_type=int, default=def_aria2.port)
     secret = OptionItem(default=def_aria2.secret)

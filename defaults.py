@@ -15,6 +15,7 @@ class generalDefaults(Constants):
     blacklist = []
 
 class aria2Defaults(Constants):
+    detach = False
     listen_all = False
     port = 6800
     secret = ''

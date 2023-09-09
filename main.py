@@ -5,6 +5,7 @@
 import sys
 import os
 import json
+import platform
 import subprocess
 from time import sleep
 from pathlib import Path
@@ -30,6 +31,8 @@ def updateOptions(generalOpts, aria2Opts, inArgs):
         generalOpts.whitelist = inArgs.include
     if inArgs.exclude != def_general.blacklist:
         generalOpts.blacklist = inArgs.exclude
+    if inArgs.detach_aria2 != def_aria2.detach:
+        aria2Opts.detach = inArgs.detach_aria2
     if inArgs.rpc_listen_all != def_aria2.listen_all:
         aria2Opts.listen_all = inArgs.rpc_listen_all
     if inArgs.rpc_port != def_aria2.port:
@@ -69,6 +72,14 @@ def listStat(index):
     return count
 
 def main():
+    # system check
+    system = platform.system()
+    if system == 'Windows' or system == 'Java':
+        print('Unsupported OS, exiting...')
+        sys.exit(1)
+    # Treat Darwin as BSD
+    elif system == 'FreeBSD' or system == 'OpenBSD' or system == 'Darwin':
+        system = 'BSD'
     # get args
     Args = ConsoleArguments()
     Args.parse()
@@ -99,13 +110,15 @@ def main():
     else:
         tryCreateDirs(gOpts.cache)
     # aria2 instance start
-    aria2Args = ['aria2c', '--daemon', '--stop-with-process=%d' % os.getpid(), '--enable-rpc', '--rpc-listen-port=%s' % str(aOpts.port)]
-    if aOpts.listen_all:
-        aria2Args.append('--rpc-listen-all')
-    if len(aOpts.secret) > 7:
-        aria2Args.append('--rpc-secret="%s"' % aOpts.secret)
-    aria2Proc = subprocess.run(aria2Args)
-    sleep(1)
+    if not aOpts.detach:
+        # allow using existing aria2 instance rather than spawning one (issue #1)
+        aria2Args = ['aria2c', '--daemon', '--stop-with-process=%d' % os.getpid(), '--enable-rpc', '--rpc-listen-port=%s' % str(aOpts.port)]
+        if aOpts.listen_all:
+            aria2Args.append('--rpc-listen-all')
+        if len(aOpts.secret) > 7:
+            aria2Args.append('--rpc-secret="%s"' % aOpts.secret)
+        aria2Proc = subprocess.run(aria2Args)
+        sleep(1)
     aria2 = aria2p.API(aria2p.Client(
             host   = 'http://127.0.0.1',
             port   = aOpts.port,
