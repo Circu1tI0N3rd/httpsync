@@ -167,6 +167,6 @@ def diffIndices_Threaded(indexA, indexB, urlOnly = False, maxThreads = 64):
                     processes[threads].start()
                     threads += 1
                 else:
-                    del processes.pop(threads)
+                    processes.pop(threads)
     # return
     return diffIndex

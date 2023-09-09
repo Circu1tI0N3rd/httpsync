@@ -234,7 +234,7 @@ def indexURL_Threaded(url, whitelist = [], blacklist = [], maxThreads = 8):
                         processes[thread].start()
                         thread = thread + 1
                     else:
-                        del processes.pop(thread)
+                        processes.pop(thread)
             except:
                 break
     return indices
