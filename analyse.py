@@ -200,7 +200,6 @@ def indexURL_Threaded(url, whitelist = [], blacklist = [], maxThreads = 8):
                     elif len(blacklist) > 0 and matchRegex(index['url'], blacklist):
                         continue
                     # skip processing for file
-                    print(index)
                     # store in directory-oriented indices
                     path = index['url']
                     if url.endswith('/'):

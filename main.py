@@ -111,6 +111,7 @@ def main():
         tryCreateDirs(gOpts.cache)
     # aria2 instance start
     if not aOpts.detach:
+        print('Creating aria2 instance')
         # allow using existing aria2 instance rather than spawning one (issue #1)
         aria2Args = ['aria2c', '--daemon', '--stop-with-process=%d' % os.getpid(), '--enable-rpc', '--rpc-listen-port=%s' % str(aOpts.port)]
         if aOpts.listen_all:
@@ -119,6 +120,7 @@ def main():
             aria2Args.append('--rpc-secret="%s"' % aOpts.secret)
         aria2Proc = subprocess.run(aria2Args)
         sleep(1)
+    print('Connecting to aria2 instance')
     aria2 = aria2p.API(aria2p.Client(
             host   = 'http://127.0.0.1',
             port   = aOpts.port,
@@ -130,6 +132,7 @@ def main():
         print('ERROR: aria2 RPC is not running or inaccessible.\n')
         sys.exit(1)
     # build index
+    print('Building index from source')
     url = gOpts.source
     if not url.endswith('/'):
         url += '/'
@@ -154,6 +157,7 @@ def main():
     deletedFiles = None
     updatedFiles = None
     if currIndexPath.is_file():
+        print('Current index is found')
         try:
             with currIndexPath.open('r') as f:
                 currIndex = json.read(f)
@@ -173,14 +177,15 @@ def main():
     # save new index
     saveIndex(newIndex, currIndexPath)
     # statistics
-    print('New files: %d' % listStat(newFiles))
+    print('Summary:')
+    print(' - New files: %d' % listStat(newFiles))
     if oldFiles is not None:
-        print('Old files: %d' % listStat(oldFiles))
-    print('Files to be added: %d' % listStat(addedFiles))
+        print(' - Old files: %d' % listStat(oldFiles))
+    print(' - Files to be added: %d' % listStat(addedFiles))
     if deletedFiles is not None:
-        print('Files to be deleted: %d' % listStat(deletedFiles))
+        print(' - Files to be deleted: %d' % listStat(deletedFiles))
     if updatedFiles is not None:
-        print('Files to be updated: %d' % listStat(updatedFiles))
+        print(' - Files to be updated: %d' % listStat(updatedFiles))
     # fetch new files
     # - fetch pool
     if 'pool' in newFiles:
