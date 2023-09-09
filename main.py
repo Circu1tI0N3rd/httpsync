@@ -5,6 +5,8 @@
 import sys
 import os
 import json
+import subprocess
+from time import sleep
 from pathlib import Path
 import aria2p
 from pathtools import saveIndex, fileCleanup
@@ -28,8 +30,8 @@ def updateOptions(generalOpts, aria2Opts, inArgs):
         generalOpts.whitelist = inArgs.include
     if inArgs.exclude != def_general.blacklist:
         generalOpts.blacklist = inArgs.exclude
-    if inArgs.rpc_host != def_aria2.host:
-        aria2Opts.host = inArgs.rpc_host
+    if inArgs.rpc_listen_all != def_aria2.listen_all:
+        aria2Opts.listen_all = inArgs.rpc_listen_all
     if inArgs.rpc_port != def_aria2.port:
         aria2Opts.port = inArgs.rpc_port
     if inArgs.rpc_secret != def_aria2.secret:
@@ -96,12 +98,16 @@ def main():
         permissionCheck(gOpts.cache)
     else:
         tryCreateDirs(gOpts.cache)
-    # aria2 initialise
-    host = aOpts.host
-    if host.endswith('/'):
-        host.removesuffix('/')
+    # aria2 instance start
+    aria2Args = ['aria2c', '--daemon', '--stop-with-process=%d' % os.getpid(), '--enable-rpc', '--rpc-listen-port=%s' % str(aOpts.port)]
+    if aOpts.listen_all:
+        aria2Args.append('--rpc-listen-all')
+    if len(aOpts.secret) > 7:
+        aria2Args.append('--rpc-secret="%s"' % aOpts.secret)
+    aria2Proc = subprocess.run(aria2Args)
+    sleep(1)
     aria2 = aria2p.API(aria2p.Client(
-            host   = host,
+            host   = 'http://127.0.0.1',
             port   = aOpts.port,
             secret = aOpts.secret
         ))

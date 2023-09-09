@@ -15,7 +15,7 @@ class generalDefaults(Constants):
     blacklist = []
 
 class aria2Defaults(Constants):
-    host = 'localhost'
+    listen_all = False
     port = 6800
     secret = ''
 

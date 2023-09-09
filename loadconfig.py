@@ -126,10 +126,10 @@ class generalOptions(Options):
         b = self.blacklist
 
 class aria2Options(Options):
-    host = OptionItem(default=def_aria2.host)
+    listen_all = OptionItem(default=def_aria2.listen_all)
     port = OptionItem(var_type=int, default=def_aria2.port)
     secret = OptionItem(default=def_aria2.secret)
     def prepare_variables(self):
-        h = self.host
+        l = self.listen_all
         p = self.port
         s = self.secret
