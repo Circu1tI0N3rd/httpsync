@@ -23,6 +23,11 @@ class OptionItem:
             strvalue = obj.__section__[self.__name__]
             if self.vartype is dict or self.vartype is list:
                 return json.loads(strvalue)
+            elif self.vartype is bool:
+                if strvalue == '1':
+                    return True
+                else:
+                    return False
             else:
                 return self.vartype(strvalue)
         except KeyError:
@@ -31,7 +36,7 @@ class OptionItem:
     def __set__(self, obj, value):
         if value is None:
             self.update_value(obj, self.__default__)
-        elif type(value) == '':
+        elif value == '':
             obj.__section__[self.__name__] = ''
         elif type(value) is not self.vartype:
             raise ValueError('Provided vaue is not of type <%s>.' % self.vartype.__name__)
@@ -42,6 +47,11 @@ class OptionItem:
             obj.__section__[self.__name__] = ''
         elif self.vartype is dict or self.vartype is list:
             obj.__section__[self.__name__] = json.dumps(value)
+        elif self.vartype is bool:
+            if value:
+                obj.__section__[self.__name__] = '1'
+            else:
+                obj.__section__[self.__name__] = '0'
         else:
             obj.__section__[self.__name__] = str(value)
         obj.unsaved = True
@@ -126,7 +136,7 @@ class generalOptions(Options):
         b = self.blacklist
 
 class aria2Options(Options):
-    listen_all = OptionItem(default=def_aria2.listen_all)
+    listen_all = OptionItem(var_type=bool, default=def_aria2.listen_all)
     port = OptionItem(var_type=int, default=def_aria2.port)
     secret = OptionItem(default=def_aria2.secret)
     def prepare_variables(self):
