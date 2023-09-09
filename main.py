@@ -185,7 +185,7 @@ def main():
     # - fetch pool
     if 'pool' in newFiles:
         print('Downloading "pool"')
-        poolFetches = indexDownload(aria2, newFiles['pool'], gOpts.destination / gOpts.distro)
+        poolFetches = indexDownload(aria2, newFiles['pool'], gOpts.destination / gOpts.distro / 'pool')
         while len(poolFetches) > 0:
             pos = 0
             while pos < len(poolFetches):
@@ -199,7 +199,7 @@ def main():
     # - fetch dists
     if 'dists' in newFiles:
         print('Downloading "dists"')
-        distsFetches = indexDownload(aria2, newFiles['dists'], gOpts.destination / gOpts.distro)
+        distsFetches = indexDownload(aria2, newFiles['dists'], gOpts.destination / gOpts.distro / 'dists')
         while len(distsFetches) > 0:
             pos = 0
             while pos < len(distsFetches):
