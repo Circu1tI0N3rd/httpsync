@@ -120,22 +120,27 @@ def filesTree(tree, path = []):
     return lst
 
 def diffIndexBuiltin_ThreadSafe(diffOut, indexA, indexB, path, urlOnly = False):
+    def createDiffFromTree(diffOut, diffFiles, keys):
+        diffTree = {}
+        subtree = diffTree
+        for key in keys:
+            if key == 'files':
+                subtree[key] = diffFiles
+            else:
+                subtree[key] = {}
+                subtree = subtree[key]
+        diffOut.put(diffTree, block = True)
     listA = transverseDict(indexA, path)
     listB = transverseDict(indexB, path)
-    if type(listA) is list and type(listB) is list:
-        filesA = prepareDiffStructure(listA, urlOnly)
-        filesB = prepareDiffStructure(listB, urlOnly)
-        diffFiles = revertDiffStructure(set(filesB) - set(filesA), urlOnly)
-        if len(diffFiles) > 0:
-            diffTree = {}
-            subtree = diffTree
-            for key in keys:
-                if key == 'files':
-                    subtree[key] = diffFiles
-                else:
-                    subtree[key] = {}
-                    subtree = subtree[key]
-            diffOut.put(diffTree, block = True)
+    if type(listB) is list:
+        if listA is None:
+            createDiffFromTree(diffOut, listB, path)
+        elif type(listA) is list and type(listB) is list:
+            filesA = prepareDiffStructure(listA, urlOnly)
+            filesB = prepareDiffStructure(listB, urlOnly)
+            diffFiles = revertDiffStructure(set(filesB) - set(filesA), urlOnly)
+            if len(diffFiles) > 0:
+                createDiffFromTree(diffOut, diffFiles, path)
     sys.exit(0)
 
 def diffIndices_Threaded(indexA, indexB, urlOnly = False, maxThreads = 64):
