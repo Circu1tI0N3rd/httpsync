@@ -200,6 +200,19 @@ def main():
         print('Added %d files to downloads' % len(indexDownload(aria2, newFiles['dists'], gOpts.destination / gOpts.distro / 'dists')))
         waitForAllFetches(aria2)
         print('Downloaded "dists"')
+    # - fetch remaining
+    print('Downloading other files')
+    fetch_count = 0
+    for key in newFiles.keys():
+        if key == 'pool' or key == 'dists':
+            continue
+        elif key == 'files':
+            directory = { key : newFiles[key] }
+            fetch_count += len(indexDownload(aria2, directory, gOpts.destination / gOpts.distro))
+        else:
+            fetch_count += len(indexDownload(aria2, newFiles[key], gOpts.destination / gOpts.distro))
+    print('Added %d files to downloads' % fetch_count)
+    waitForAllFetches(aria2)
     # remove old files
     if deletedFiles is not None:
         delPaths = filesTree(deletedFiles)
