@@ -6,7 +6,7 @@ from defaults import def_general, def_aria2
 from abc import ABC, abstractmethod
 from pathtools import changedir
 import configparser
-from pathlib import Path
+from pathlib import Path, PosixPath
 import json
 
 class OptionException(Exception):
@@ -75,7 +75,7 @@ class Options(ABC):
             self.__parent__ = configparser.ConfigParser()
             if obj is None:
                 pass
-            elif type(obj) is str or type(obj) is Path:
+            elif type(obj) is str or type(obj) is Path or type(obj) is PosixPath:
                 self.config_file = Path(obj)
                 if self.config_file.is_file():
                     with self.config_file.open('r') as f:
