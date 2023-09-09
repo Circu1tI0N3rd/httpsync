@@ -168,6 +168,7 @@ def main():
         newFiles = newIndex
         addedFiles = newIndex
     else:
+        print('Comparing for changes')
         newFiles = diffIndices_Threaded(currIndex, newIndex, maxThreads = 64)
         oldFiles = diffIndices_Threaded(newIndex, currIndex, maxThreads = 64)
         # - categorise files update/add/delete

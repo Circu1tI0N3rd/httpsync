@@ -8,6 +8,7 @@ from pathlib import Path
 import subprocess
 import multiprocessing as mp
 from pathtools import changedir, fileCleanup
+from dicttools import indepthDictUpdate
 
 def prepareDiffStructure(filesList, urlOnly = False):
     filesStrList = []
@@ -154,7 +155,7 @@ def diffIndices_Threaded(indexA, indexB, urlOnly = False, maxThreads = 64):
             try:
                 partial = diffOut.get(block = False)
                 if partial is not None:
-                    diffIndex = {**diffIndex, **partial}
+                    indepthDictUpdate(diffIndex, partial)
             except:
                 break;
         # Initiates new threads

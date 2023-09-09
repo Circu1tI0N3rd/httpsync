@@ -6,6 +6,7 @@ import json
 from time import sleep
 from pathlib import Path
 import multiprocessing as mp
+from dicttools import indepthDictUpdate
 
 def changedir(curr, ext):
     c = Path(curr)
@@ -75,21 +76,6 @@ def directoryIndex(parent, url):
         return curr
     else:
         return None
-
-def indepthDictUpdate(A, B):
-    if type(B) is dict and type(A) is dict:
-        for key in B.keys():
-            if key in A:
-                if type(A[key]) is list and type(B[key]) is list:
-                    A[key] += B[key]
-                elif type(A[key]) is dict and type(B[key]) is dict:
-                    indepthDictUpdate(A[key], B[key])
-                elif type(A[key]) is dict:
-                    A[key].update(B[key])
-                else:
-                    A[key] = B[key]
-            else:
-                A[key] = B[key]
 
 def directoryIndex_ThreadSafe(pathQueue, outQueue, root_path, root_url):
     # Construct:
