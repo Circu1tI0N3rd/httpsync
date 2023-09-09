@@ -21,7 +21,7 @@ def changedir(curr, ext):
 
 def saveIndex(index, path):
     p = Path(path)
-    with p.open('w') as f:
+    with p.open('w', encoding='utf-8') as f:
         json.dump(index, f, indent=4, sort_keys=True)
 
 def updateIndex(index, path):

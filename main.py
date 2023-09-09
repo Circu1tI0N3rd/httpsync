@@ -132,6 +132,16 @@ def main():
     # build index
     newIndex = indexURL_Threaded(gOpts.source, gOpts.whitelist, gOpts.blacklist, 16)
     # check existing index
+    srcname = str(gOpts.source)
+    if srcname.find('https') == 0:
+        srcname.removeprefix('https://')
+    else:
+        srcname.removeprefix('http://')
+    if srcname.endswith('/'):
+        srcname.removesuffix('/')
+    if srcname.find('/') >= 0:
+        srcsplit = srcname.split('/')
+        srcname = '_'.join(srcsplit)
     currIndexPath = gOpts.cache / str(gOpts.source + '_' + gOpts.distro + '_index.json')
     currIndex = None
     newFiles = {}
