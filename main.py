@@ -160,9 +160,9 @@ def main():
         print('Current index is found')
         try:
             with currIndexPath.open('r') as f:
-                currIndex = json.read(f)
-        except:
-            pass
+                currIndex = json.load(f)
+        except Exception as e:
+            print('Failed reading current index: %s' % str(e))
     # - build diff index (add & remove)
     if currIndex is None:
         newFiles = newIndex
