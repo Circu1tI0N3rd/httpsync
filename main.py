@@ -142,7 +142,7 @@ def main():
     if srcname.find('/') >= 0:
         srcsplit = srcname.split('/')
         srcname = '_'.join(srcsplit)
-    currIndexPath = gOpts.cache / str(gOpts.source + '_' + gOpts.distro + '_index.json')
+    currIndexPath = gOpts.cache / str(srcname + '_' + gOpts.distro + '_index.json')
     currIndex = None
     newFiles = {}
     oldFiles = None
