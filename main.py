@@ -71,6 +71,14 @@ def listStat(index):
         count += len(transverseDict(index, path))
     return count
 
+def searchURL(index, filename):
+    for path in filesTree(index):
+        for file in transverseDict(index, path):
+            pos = file['url'].find(filename)
+            if pos > 0 and pos < len(file['url']):
+                return file['url']
+    return None
+
 def main():
     # system check
     system = platform.system()
@@ -185,30 +193,42 @@ def main():
     # - fetch pool
     if 'pool' in newFiles:
         print('Downloading "pool"')
-        poolFetches = indexDownload(aria2, newFiles['pool'], gOpts.destination / gOpts.distro / 'pool')
-        while len(poolFetches) > 0:
-            pos = 0
-            while pos < len(poolFetches):
-                poolFetches[pos].update()
-                if poolFetches[pos].is_complete:
-                    poolFetches[pos].remove(False, False)
-                    poolFetches.pop(pos)
-                else:
-                    pos += 1
+        indexDownload(aria2, newFiles['pool'], gOpts.destination / gOpts.distro / 'pool')
+        fetches = aria2.get_downloads()
+        while len(fetches) > 0:
+            fails = []
+            for fetch in fetches:
+                try:
+                    fetch.update()
+                    if fetch.has_failed:
+                        print('Will retry: %s' % fetch.name)
+                        fails.append(fetch)
+                except:
+                    pass
+            if len(fails) > 0:
+                aria2.retry_downloads(fails, clean=True)
+            aria2.purge()
+            fetches = aria2.get_downloads()
         print('Downloaded "pool"')
     # - fetch dists
     if 'dists' in newFiles:
         print('Downloading "dists"')
-        distsFetches = indexDownload(aria2, newFiles['dists'], gOpts.destination / gOpts.distro / 'dists')
-        while len(distsFetches) > 0:
-            pos = 0
-            while pos < len(distsFetches):
-                distsFetches[pos].update()
-                if distsFetches[pos].is_complete:
-                    distsFetches[pos].remove(False, False)
-                    distsFetches.pop(pos)
-                else:
-                    pos += 1
+        indexDownload(aria2, newFiles['dists'], gOpts.destination / gOpts.distro / 'dists')
+        fetches = aria2.get_downloads()
+        while len(fetches) > 0:
+            fails = []
+            for fetch in fetches:
+                try:
+                    fetch.update()
+                    if fetch.has_failed:
+                        print('Will retry: %s' % fetch.name)
+                        fails.append(fetch)
+                except:
+                    pass
+            if len(fails) > 0:
+                aria2.retry_downloads(fails, clean=True)
+            aria2.purge()
+            fetches = aria2.get_downloads()
         print('Downloaded "dists"')
     # remove old files
     if deletedFiles is not None:
