@@ -6,7 +6,7 @@ Cleanup the destination to match the current index
 from pathlib import Path
 from pathtools import directoryIndex, fileCleanup
 from difftree import diffIndices_Threaded
-from dicttools import listStat
+from dicttools import listStat, filesTree
 
 def pathIndex(dest, distro, src_url):
     # build file tree
