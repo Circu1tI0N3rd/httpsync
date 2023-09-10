@@ -26,11 +26,12 @@ def transverseDict(tree, keys):
 
 def filesTree(tree, path = []):
     lst = []
-    for key in tree.keys():
-        if key == 'files':
-            lst.append(tuple(path + [key]))
-        else:
-            lst += filesTree(tree[key], path + [key])
+    if tree is not None:
+        for key in tree.keys():
+            if key == 'files':
+                lst.append(tuple(path + [key]))
+            else:
+                lst += filesTree(tree[key], path + [key])
     return lst
 
 def listStat(index):
