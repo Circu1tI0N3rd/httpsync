@@ -86,7 +86,7 @@ def doPathTrim(generalOpts, inArgs):
         except Exception as e:
             print('Cannot read current index: %s' % str(e))
             sys.exit(1)
-        pathTrim(generalOpts.destination, generalOpts.distro, generalOpts.source, idx, generalOpts.cache, inArgs.trim_dryrun, inArgs.trim_use_scanned)
+        pathTrim(generalOpts.destination, generalOpts.distro, generalOpts.source, idx, save_path=generalOpts.cache, dry_run=inArgs.trim_dryrun, use_cached=inArgs.trim_use_scanned)
         sys.exit(0)
     else:
         print('FAIL: Missing index or not mirrored')

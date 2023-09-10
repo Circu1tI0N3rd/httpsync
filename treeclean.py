@@ -47,7 +47,7 @@ def pathTrim(dest, distro, src_url, index, save_path = None, dry_run = False, us
             srcsplit = srcname.split('/')
             srcname = '_'.join(srcsplit)
         p = Path(save_path) / str(srcname + '_' + distro + '_dir.json')
-    if not p.is_file() and use_cached:
+    if use_cached and not p.is_file():
         use_cached = False
         if p.is_dir():
             save_path = None
