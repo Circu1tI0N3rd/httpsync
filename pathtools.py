@@ -75,4 +75,4 @@ def directoryIndex(parent, url):
             } for file in files]
         return tree
     else:
-        return None
+        return {}

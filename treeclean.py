@@ -10,7 +10,6 @@ from difftree import diffIndices_Threaded
 from dicttools import listStat, transverseDict, filesTree
 
 def pathIndex(dest, distro, src_url):
-    # build file tree
     url = str(src_url)
     if not url.endswith('/'):
         url += '/'
@@ -62,7 +61,7 @@ def pathTrim(dest, distro, src_url, index, save_path = None, dry_run = False, us
             print('Cannot read, trying rescan')
             use_cached = False
     if use_cached:
-        print('Scanning destination (may take a while)')
+        print('Scanning destination (may take a while): %s' % str(Path(dest) / distro))
         dIndex = pathIndex(dest, distro, src_url)
     print('Comapring to source structure')
     excess  = diffIndices_Threaded(index, dIndex, urlOnly = True)
