@@ -60,7 +60,7 @@ def pathTrim(dest, distro, src_url, index, save_path = None, dry_run = False, us
         except:
             print('Cannot read, trying rescan')
             use_cached = False
-    if use_cached:
+    if not use_cached:
         print('Scanning destination (may take a while): %s' % str(Path(dest) / distro))
         dIndex = pathIndex(dest, distro, src_url)
     print('Comapring to source structure')
