@@ -64,7 +64,7 @@ def directoryIndex(parent, url):
             if not c_url.endswith('/'):
                 c_url += '/'
             ptr = tree
-            for subdir in subdirs:
+            for subdir in path.removeprefix(str(p) + '/').split('/'):
                 c_url += subdir + '/'
                 if not subdir in ptr:
                     ptr[subdir] = {}
