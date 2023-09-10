@@ -66,6 +66,32 @@ def permissionCheck(path):
         print('ERROR: Folder access failed.\n')
         sys.exit(1)
 
+def doPathTrim(generalOpts, inArgs):
+    srcname = str(generalOpts.source)
+    if srcname.find('https') == 0:
+        srcname = srcname.removeprefix('https://')
+    else:
+        srcname = srcname.removeprefix('http://')
+    if srcname.endswith('/'):
+        srcname = srcname.removesuffix('/')
+    if srcname.find('/') >= 0:
+        srcsplit = srcname.split('/')
+        srcname = '_'.join(srcsplit)
+    p = generalOptions.cache / str(srcname + '_' + generalOpts.distro + '_index.json')
+    if p.is_file():
+        idx = None
+        try:
+            with p.open('r') as f:
+                idx = json.load(f)
+        except Exception as e:
+            print('Cannot read current index: %s' % str(e))
+            sys.exit(1)
+        pathTrim(generalOpts.destination, generalOpts.distro, generalOpts.source, idx, generalOpts.cache, inArgs.trim_dryrun, inArgs.trim_use_scanned)
+        sys.exit(0)
+    else:
+        print('FAIL: Missing index or not mirrored')
+        sys.exit(1)
+
 def main():
     # system check
     system = platform.system()
@@ -104,6 +130,10 @@ def main():
         permissionCheck(gOpts.cache)
     else:
         tryCreateDirs(gOpts.cache)
+    # do path trim if called
+    if Args.destination_trim:
+        doPathTrim(gOpts, Args)
+        sys.exit(1)
     # aria2 instance start
     if not aOpts.detach:
         print('Creating aria2 instance')
@@ -211,7 +241,7 @@ def main():
     # remove old files
     treeCleanup(deletedFiles, Path(gOpts.destination) / gOpts.distro)
     # triming excesses
-    pathTrim(gOpts.destination, gOpts.distro, gOpts.source, newIndex)
+    pathTrim(gOpts.destination, gOpts.distro, gOpts.source, newIndex, gOpts.cache, Args.trim_dryrun)
     # return
     print('Mirror complete!\n')
     sys.exit(0)

@@ -52,6 +52,9 @@ class ConsoleArguments:
     rpc_port = Argument(def_aria2.port)
     rpc_secret = Argument(def_aria2.secret)
     save = Argument(not_in_config = True)
+    destination_trim = Argument(not_in_config = True)
+    trim_dryrun = Argument(not_in_config = True)
+    trim_use_scanned = Argument(not_in_config = True)
     default_values = True
     def __init__(self):
         self.parser.add_argument('-C', '--config', type=Path, metavar='config_file', help='Path to INI config file.')
@@ -66,6 +69,9 @@ class ConsoleArguments:
         self.parser.add_argument('-P', '--rpc-port', type=int, help='Port of aria2 RPC server.')
         self.parser.add_argument('-S', '--rpc-secret', type=str, help='aria2 RPC protocol secret (security).')
         self.parser.add_argument('-s', '--save', action='store_true', help='Save configured to file (specified via -C).')
+        self.parser.add_argument('-t', '--destination-trim', action='store_true', help='Triming destination from excess files.')
+        self.parser.add_argument('-D', '--trim-dryrun', action='store_true', help='Only scan destination for excess files.')
+        self.parser.add_argument('-r', '--trim-use-scanned', action='store_true', help='Use the previous scan to get excess files.')
     def __setattr__(self, name, value):
         if hasattr(self, name):
             super().__setattr__(name, value)
