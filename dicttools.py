@@ -16,6 +16,8 @@ def indepthDictUpdate(A, B):
                 A[key] = B[key]
 
 def transverseDict(tree, keys):
+    if tree is None:
+        return None
     dest = tree
     for key in keys:
         if key in dest:
