@@ -64,11 +64,12 @@ def directoryIndex(parent, url):
             if not c_url.endswith('/'):
                 c_url += '/'
             ptr = tree
-            for subdir in path.removeprefix(str(p) + '/').split('/'):
-                c_url += subdir + '/'
-                if not subdir in ptr:
-                    ptr[subdir] = {}
-                ptr = ptr[subdir]
+            if path != str(p):
+                for subdir in path.removeprefix(str(p) + '/').split('/'):
+                    c_url += subdir + '/'
+                    if not subdir in ptr:
+                        ptr[subdir] = {}
+                    ptr = ptr[subdir]
             ptr['files'] = [{
                 'file' : '%d' % Path(path + '/' + file).stat().st_size,
                 'url' : c_url + file
