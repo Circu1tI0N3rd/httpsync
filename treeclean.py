@@ -26,10 +26,11 @@ def treeCleanup(index, parent):
             for subdir in subdirs:
                 if subdir != 'files':
                     p /= subdir
-            for file in transverseDict(deletedFiles, subdirs):
+            for file in transverseDict(index, subdirs):
                 url = str(file['url']).rsplit('/', maxsplit=1)
                 delList.append(p / url[1])
         for delFile in delList:
+            print('Deleting tree: %s' % str(delFile))
             fileCleanup(delFile)
 
 def pathTrim(dest, distro, src_url, index, save_path = None, dry_run = False, use_cached = False):
