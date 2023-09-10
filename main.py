@@ -77,7 +77,7 @@ def doPathTrim(generalOpts, inArgs):
     if srcname.find('/') >= 0:
         srcsplit = srcname.split('/')
         srcname = '_'.join(srcsplit)
-    p = generalOptions.cache / str(srcname + '_' + generalOpts.distro + '_index.json')
+    p = generalOpts.cache / str(srcname + '_' + generalOpts.distro + '_index.json')
     if p.is_file():
         idx = None
         try:
