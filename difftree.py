@@ -8,7 +8,7 @@ from pathlib import Path
 import subprocess
 import multiprocessing as mp
 from pathtools import changedir, fileCleanup
-from dicttools import indepthDictUpdate
+from dicttools import indepthDictUpdate, transverseDict, filesTree
 
 def prepareDiffStructure(filesList, urlOnly = False):
     filesStrList = []
@@ -100,24 +100,6 @@ def diffIndices(indexA, indexB, method = '', working_dir = '/tmp', depth = ''):
             else:
                 diffIndex[key] = indexB[key]
     return diffIndex
-
-def transverseDict(tree, keys):
-    dest = tree
-    for key in keys:
-        if key in dest:
-            dest = dest[key]
-        else:
-            return None
-    return dest
-
-def filesTree(tree, path = []):
-    lst = []
-    for key in tree.keys():
-        if key == 'files':
-            lst.append(tuple(path + [key]))
-        else:
-            lst += filesTree(tree[key], path + [key])
-    return lst
 
 def diffIndexBuiltin_ThreadSafe(diffOut, indexA, indexB, path, urlOnly = False):
     def createDiffFromTree(diffOut, diffFiles, keys):

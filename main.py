@@ -15,8 +15,10 @@ from defaults import def_general, def_aria2
 from argparser import ConsoleArguments
 from loadconfig import generalOptions, aria2Options
 from analyse import indexURL_Threaded
-from difftree import diffIndices_Threaded, transverseDict, filesTree
+from difftree import diffIndices_Threaded
 from fetch import indexDownload, waitForAllFetches
+from dicttools import listStat, transverseDict, filesTree
+from treeclean import treeCleanup, pathTrim
 
 def updateOptions(generalOpts, aria2Opts, inArgs):
     if inArgs.source != def_general.source:
@@ -63,13 +65,6 @@ def permissionCheck(path):
     except:
         print('ERROR: Folder access failed.\n')
         sys.exit(1)
-
-def listStat(index):
-    count = 0
-    filesPath = filesTree(index)
-    for path in filesPath:
-        count += len(transverseDict(index, path))
-    return count
 
 def main():
     # system check
@@ -214,19 +209,9 @@ def main():
     print('Added %d files to downloads' % fetch_count)
     waitForAllFetches(aria2)
     # remove old files
-    if deletedFiles is not None:
-        delPaths = filesTree(deletedFiles)
-        delList = []
-        for subdirs in delPaths:
-            path = Path(gOpts.destination) / gOpts.distro
-            for subdir in subdirs:
-                if subdir != 'files':
-                    path /= subdir
-            for file in transverseDict(deletedFiles, subdirs):
-                url = str(file['url']).rsplit('/', maxsplit=1)
-                delList.append(path / url[1])
-        for delFile in delList:
-            fileCleanup(delFile)
+    treeCleanup(deletedFiles, Path(gOpts.destination) / gOpts.distro)
+    # triming excesses
+    pathTrim(gOpts.destination, gOpts.distro, gOpts.source, newIndex)
     # return
     print('Mirror complete!\n')
     sys.exit(0)

@@ -56,107 +56,23 @@ def fileCleanup(path):
 def directoryIndex(parent, url):
     p = Path(parent)
     if p.is_file():
-        return {
-            'file' : '%d' % p.stat().st_size,
-            'url' : url
-        }
+        return { 'file' : '%d' % p.stat().st_size, 'url' : url }
     elif p.is_dir():
-        curr = {}
-        for path in p.iterdir():
-            item = directoryIndex(path, url + '/' + path.name)
-            if item is None:
-                continue
-            elif 'file' in item:
-                if 'files' in curr:
-                    curr['files'].append(item)
-                else:
-                    curr['files'] = [item,]
-            else:
-                curr[path.name] = item
-        return curr
+        tree = {}
+        for path, subdirs, files in os.walk(str(p)):
+            c_url = str(url)
+            if not c_url.endswith('/'):
+                c_url += '/'
+            ptr = tree
+            for subdir in subdirs:
+                c_url += subdir + '/'
+                if not subdir in ptr:
+                    ptr[subdir] = {}
+                ptr = ptr[subdir]
+            ptr['files'] = [{
+                'file' : '%d' % Path(path + '/' + file).stat().st_size,
+                'url' : c_url + file
+            } for file in files]
+        return tree
     else:
         return None
-
-def directoryIndex_ThreadSafe(pathQueue, outQueue, root_path, root_url):
-    # Construct:
-    # - Takes a job from pathQueue
-    # - If the paper said DONE, done!
-    # - Analyse that job
-    # - If the job has informations needing clarity, pass it over to pathQueue
-    # - Clarified items put inside outQueue
-    # - Repeat
-    while True:
-        rel_path = pathQueue.get(block = True)
-        if rel_path is None:
-            sys.exit(0)
-        elif type(rel_path) is list:
-            # transverse the path
-            p = Path(root_path)
-            curr = {}
-            ptr = curr
-            url = root_url
-            for subdir in rel_path:
-                p /= subdir
-                url += subdir + '/'
-                ptr[subdir] = {}
-                ptr = ptr[subdir]
-            # check the path
-            for sp in p.iterdir():
-                if sp.is_dir():
-                    pathQueue.put(rel_path + [sp.name,], block = True)
-                elif sp.is_file():
-                    if not 'files' in ptr:
-                        ptr['files'] = []
-                    ptr['files'].append({
-                            'file' : '%d' % sp.stat().st_size,
-                            'url' : url + sp.name
-                        })
-            # return the files
-            if 'files' in ptr:
-                outQueue.put(curr, block = True)
-
-def directoryIndex_Threaded(parent, url, threads = 64, maxTries = 64):
-    # check parent is directory
-    p = Path(parent)
-    if not p.is_dir():
-        return None
-    # construct queues
-    pathQueue = mp.Queue()
-    outQueue = mp.Queue()
-    pathQueue.put([])
-    # construct parent url
-    if not url.endswith('/'):
-        url += '/'
-    # construct threads and start
-    processes = []
-    while len(processes) < threads:
-        processes.append(mp.Process(
-                target = directoryIndex_ThreadSafe,
-                args = (pathQueue, outQueue, p, url)
-            ))
-        processes[len(processes) - 1].start()
-    # build output
-    index = {}
-    trial = 1
-    while True:
-        try:
-            subidx = outQueue.get(block = False)
-            trial = 1
-            indepthDictUpdate(index, subidx)
-        except:
-            if trial < maxTries:
-                trial += 1
-            else:
-                # quit all processes
-                for i in range(threads):
-                    pathQueue.put(None)
-                while len(processes) > 0:
-                    proc = 0
-                    while proc < len(processes):
-                        if processes[proc].is_alive():
-                            proc += 1
-                        else:
-                            processes.pop(proc)
-                break
-    # return
-    return index

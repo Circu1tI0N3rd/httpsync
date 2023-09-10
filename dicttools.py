@@ -14,3 +14,28 @@ def indepthDictUpdate(A, B):
                     A[key] = B[key]
             else:
                 A[key] = B[key]
+
+def transverseDict(tree, keys):
+    dest = tree
+    for key in keys:
+        if key in dest:
+            dest = dest[key]
+        else:
+            return None
+    return dest
+
+def filesTree(tree, path = []):
+    lst = []
+    for key in tree.keys():
+        if key == 'files':
+            lst.append(tuple(path + [key]))
+        else:
+            lst += filesTree(tree[key], path + [key])
+    return lst
+
+def listStat(index):
+    count = 0
+    filesPath = filesTree(index)
+    for path in filesPath:
+        count += len(transverseDict(index, path))
+    return count
